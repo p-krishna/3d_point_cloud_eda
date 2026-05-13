@@ -216,3 +216,5 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+.vscode/settings.json
+sample_data/light-point-cloud-of-my-living-room.ply
