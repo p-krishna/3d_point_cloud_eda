@@ -1,5 +1,6 @@
 #%%
 import open3d as o3d
+import numpy as np
 
 # need this environment variable to avoid "GLFW Error: Wayland: The platform does not support setting the window position")
 import os
@@ -107,3 +108,37 @@ for i in range(6):
     print(f"Plane {i}: {len(inliers)} points, remaining: {len(temp_cloud.points)}")
 
 o3d.visualization.draw_geometries(plane_clouds, window_name="Segmented Planes")
+
+# %%
+# Cluster remaining points with DBSCAN
+labels = np.array(
+    remaining_cloud.cluster_dbscan(
+        eps=0.05,
+        min_points=3,
+        print_progress=True
+    )
+)
+
+max_label = labels.max()
+print(f"Number of clusters: {max_label + 1}")
+print(f"Noise points: {(labels == -1).sum()}")
+
+# Color each cluster
+if max_label >= 0:
+    colors = plt_colors = np.random.rand(max_label + 1, 3)
+    cluster_colors = np.zeros((len(labels), 3))
+
+    for i in range(len(labels)):
+        if labels[i] == -1:
+            cluster_colors[i] = [0, 0, 0]   # noise = black
+        else:
+            cluster_colors[i] = colors[labels[i]]
+
+    remaining_cloud.colors = o3d.utility.Vector3dVector(cluster_colors)
+
+#%%
+# Visualize
+o3d.visualization.draw_geometries(
+    [plane_cloud, remaining_cloud],
+    window_name="Plane Segmentation + Clustering"
+)
